@@ -6,7 +6,7 @@ pipeline {
             steps {
                 echo 'Building..'
 		sh """
-		    date > README
+		    date > ./README
 		    python ./pipelinetask_mail.py README
 		"""
             }
