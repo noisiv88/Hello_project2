@@ -7,7 +7,7 @@ pipeline {
                 echo 'Building..'
 		sh """
 		    date > ./README
-		    python ./pipelinetask_mail.py -r andriy.shvorak@plvision.eu andriyshvorak@gmail.com -s ${env.BUILD_STATUS}  -m 'Hi' -a README
+		    python ./pipelinetask_mail.py -r andriy.shvorak@plvision.eu andriyshvorak@gmail.com -s Build clean ONL from repository patched with my deb packet Status - $BUILD_STATUS  -m 'Hi' -a README
 		"""
             }
         }
