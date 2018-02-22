@@ -1,47 +1,60 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Import smtplib for the actual sending function
-import smtplib
 import sys
-
-# For guessing MIME type
-import mimetypes
-
-# Import the email modules we'll need
-import email
-import email.mime.application
+import smtplib
+from os.path import basename
 from configparser import ConfigParser
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import COMMASPACE, formatdate
 
 config = ConfigParser()
 config.read('config.ini')
 secret = config.get('email', 'pass')
+sendfrom = config.get('email', 'from')
 
-filename = str(sys.argv[1])
-# Create a text/plain message
-msg = email.mime.Multipart.MIMEMultipart()
-msg['Subject'] = 'Email message from jenkins task' 
-msg['From'] = 'auto.notification.as@gmail.com'
-msg['To'] = 'andriy.shvorak@.plvision.eu'
+def send_mail(send_from, send_to, subject, text, files=None,
+              server='smtp.gmail.com'):
+    assert isinstance(send_to, list)
+    msg = MIMEMultipart()
+    msg['From'] = send_from
+    msg['To'] = COMMASPACE.join(send_to)
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = subject
 
-# The main body is just another attachment
-body = email.mime.Text.MIMEText(""" """)
-msg.attach(body)
+    msg.attach(MIMEText(text))
 
-fp=open(filename,'rb')
-att = email.mime.application.MIMEApplication(fp.read())
-fp.close()
-att.add_header('Content-Disposition','attachment',filename=filename)
-msg.attach(att)
+    for f in files or []:
+        with open(f, "rb") as fil:
+            part = MIMEApplication(
+                fil.read(),
+                Name=basename(f)
+            )
+        # After the file is closed
+        part['Content-Disposition'] = 'attachment; filename="%s"' % basename(f)
+        msg.attach(part)
 
-# send via Gmail server
-# NOTE: my ISP, Centurylink, seems to be automatically rewriting
-# port 25 packets to be port 587 and it is trashing port 587 packets.
-# So, I use the default port 25, but I authenticate. 
-s = smtplib.SMTP('smtp.gmail.com')
-s.starttls()
-s.login('auto.notification.as@gmail.com',secret)
-s.sendmail('auto.notification.as@gmail.com',['andriy.shvorak@plvision.eu'], msg.as_string())
-s.quit()
+    smtp = smtplib.SMTP(server)
+    smtp.starttls()
+    smtp.login(send_from, secret)
+    smtp.sendmail(send_from, send_to, msg.as_string())
+    smtp.close()
 
+if __name__ == '__main__':
+
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-r', '--recipient', nargs='*', help='Recepients addresses')
+    parser.add_argument('-s', '--subject', help='Subject')
+    parser.add_argument('-m', '--message', help='Message')
+    parser.add_argument('-a', '--attachment', nargs='*', help='Attachment')
+    sendto = parser.parse_args().recipient
+    subject = parser.parse_args().subject
+    message = parser.parse_args().message
+    attachment = parser.parse_args().attachment
+
+    send_mail(sendfrom, sendto, subject, message, attachment)
 
