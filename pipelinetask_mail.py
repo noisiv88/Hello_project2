@@ -47,7 +47,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-r', '--recipient', nargs='*', help='Recepients addresses')
+    parser.add_argument('-r', '--recipient', nargs='*', help='Recepients addresses', required=True)
     parser.add_argument('-s', '--subject', help='Subject')
     parser.add_argument('-m', '--message', help='Message')
     parser.add_argument('-a', '--attachment', nargs='*', help='Attachment')
