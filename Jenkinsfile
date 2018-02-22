@@ -7,7 +7,7 @@ pipeline {
                 echo 'Building..'
 		sh """
 		    date > ./README
-		    python ./pipelinetask_mail.py -r andriy.shvorak@plvision.eu andriyshvorak@gmail.com -s 'Hello' -m 'Hi' -a README
+		    python ./pipelinetask_mail.py -r andriy.shvorak@plvision.eu andriyshvorak@gmail.com -s ${build.result}  -m 'Hi' -a README
 		"""
             }
         }
