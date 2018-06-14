@@ -57,4 +57,3 @@ if __name__ == '__main__':
     attachment = parser.parse_args().attachment
 
     send_mail(sendfrom, sendto, subject, message, attachment)
-
